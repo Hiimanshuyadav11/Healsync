@@ -1,6 +1,6 @@
 # healsync
 
-A new Flutter project.
+It is an chat based app for the mental and physical wellness.
 
 ## Getting Started
 
