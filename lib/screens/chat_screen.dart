@@ -8,13 +8,35 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
+
 class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String,dynamic>>messages = [
     {'text':"Hi , Healsync here",
     'isUser':false,},];
   final TextEditingController _controller = TextEditingController();
-  
-  
+  void _sendmessage() {
+    final Text = _controller.text.trim();
+    if(Text.isEmpty) return;
+
+    setState(() {
+      messages.add({
+        'text': Text ,
+        'isUser' :true,
+      });
+    });
+    _controller.clear();
+    Future.delayed(const Duration(seconds: 1), () {
+      setState(() {
+        messages.add({
+          'text':"I hear U want to talk more about it ?",
+          'isUser': false,
+        });
+      });
+    } ) ;
+  }
+ 
+
+
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -41,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: const EdgeInsets.all(16),
               
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(50),
-              color: Colors.grey.shade900,),
+              color: Colors.grey.shade800),
               child: Row(
                 children: [
                   CircleAvatar(
@@ -106,9 +128,9 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ), ),
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(230, 64, 26, 26),
+        backgroundColor: Color.fromARGB(230, 63, 29, 29),
         title:  const 
-        Text('Healsync'),
+        Text('Healsync', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold,color: Color.fromARGB(255, 174, 197, 235)),),
         centerTitle: true,
         
       ),
@@ -125,32 +147,40 @@ class _ChatScreenState extends State<ChatScreen> {
             },)),
 
 
-       Container( decoration: BoxDecoration(borderRadius: BorderRadius.circular(30),color: const Color.fromARGB(255, 138, 135, 135),),
-       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),width: 325,
-       child: Row( 
-       children: [SizedBox(width: 260, child :TextField( 
-          controller: _controller,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(hintText: 'U All Right ?',
-          hintStyle: TextStyle(color: Colors.amber),border: InputBorder.none),))
-        ,IconButton(onPressed: (){
-          if(_controller.text.trim().isEmpty)return;
-         _controller.text.trim();
-          setState(() {
-            messages.add({'text': _controller.text.trim(),
-            'isUser':true,});
-          });_controller.clear();
-            Future.delayed(Duration(seconds: 1), () {
-    setState(() {
-      messages.add({
-        'text': "I hear you. Want to talk more about it?",
-        'isUser': false,
-      });
-    });
-  });
-        }, icon: Icon(Icons.send,color: const Color.fromARGB(255, 115, 44, 16),))],
-       ),
-       )
+      Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+  child: Row(
+    children: [
+      Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 30, 30, 30),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: TextField(
+            controller: _controller,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (_) => _sendmessage(),
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              hintText: 'U All Right ?',
+              border: InputBorder.none,
+            )),
+        ),),
+
+      const SizedBox(width: 8),
+      Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Color.fromARGB(255, 115, 44, 16),
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.send, color: Colors.white),
+          onPressed: _sendmessage,
+        ),),
+        ],
+  ),)
        
         ]
       ),
