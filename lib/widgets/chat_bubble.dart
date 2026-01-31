@@ -21,10 +21,12 @@ class ChatBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          // Gradient for user, solid dark grey for AI
           gradient: isUser
               ? const LinearGradient(
-                  colors: [Color(0xFF6A11CB), Color(0xFF2575FC)], // Purple to Blue
+                  colors: [
+                    Color(0xFF6A11CB),
+                    Color(0xFF2575FC),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
@@ -49,7 +51,7 @@ class ChatBubble extends StatelessWidget {
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
-            height: 1.4, // Better line height for readability
+            height: 1.4,
           ),
         ),
       ),
