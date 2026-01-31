@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/chat_screen.dart';
+import 'screens/auth_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -22,7 +22,7 @@ class HealSyncApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'HealSync',
       theme: ThemeData.dark(useMaterial3: true),
-      home: ChatScreen(), 
+      home: AuthScreen(), 
     );
   }
 }

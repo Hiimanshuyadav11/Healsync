@@ -10,28 +10,49 @@ class ChatBubble extends StatelessWidget {
     required this.isUser,
   });
 
-  @override 
-  Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width*0.72,
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isUser ? const Color.fromARGB(255, 55, 56, 57) : const Color.fromARGB(255, 34, 31, 31),
+          gradient: isUser
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF6A11CB),
+                    Color(0xFF2575FC),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: isUser ? null : const Color(0xFF333333),
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(isUser ? 18 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 18),
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft: Radius.circular(isUser ? 20 : 4),
+            bottomRight: Radius.circular(isUser ? 4 : 20),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            height: 1.4,
+          ),
         ),
       ),
     );

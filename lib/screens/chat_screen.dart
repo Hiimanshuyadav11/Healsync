@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../widgets/chat_bubble.dart';
+import '../services/api_service.dart';
+import 'package:file_picker/file_picker.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -8,184 +11,151 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-
 class _ChatScreenState extends State<ChatScreen> {
-  final List<Map<String,dynamic>>messages = [
-    {'text':"Hi , Healsync here",
-    'isUser':false,},];
-  final TextEditingController _controller = TextEditingController();
-  void _sendmessage() {
-    final Text = _controller.text.trim();
-    if(Text.isEmpty) return;
+  final List<Map<String, dynamic>> messages = [
+    {'text': "Hi, I'm Healsync.\nHow can I help you today? 🌿", 'isUser': false},
+  ];
 
-    setState(() {
-      messages.add({
-        'text': Text ,
-        'isUser' :true,
-      });
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  PlatformFile? _selectedFile;
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
-    _controller.clear();
-    Future.delayed(const Duration(seconds: 1), () {
+  }
+
+  Future<void> _handleSend() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty && _selectedFile == null) return;
+
+    if (_selectedFile != null) {
       setState(() {
         messages.add({
-          'text':"I hear U want to talk more about it ?",
-          'isUser': false,
+          'text': "Uploading ${_selectedFile!.name}...",
+          'isUser': true
         });
       });
-    } ) ;
-  }
- 
+      _scrollToBottom();
 
+      try {
+        final filePath = kIsWeb ? null : _selectedFile!.path;
+        await ApiService.uploadFile(
+          filePath,
+          bytes: _selectedFile!.bytes,
+          filename: _selectedFile!.name,
+        );
+        _selectedFile = null;
+      } catch (e) {
+        setState(() {
+          messages.add({'text': "Upload failed: $e", 'isUser': false});
+        });
+        return;
+      }
+    }
+
+    if (text.isNotEmpty) {
+      setState(() {
+        messages.add({'text': text, 'isUser': true});
+      });
+      _controller.clear();
+      _scrollToBottom();
+
+      try {
+        final response = await ApiService.sendMessage(text);
+        setState(() {
+          messages.add({
+            'text': response['reply'] ?? "I didn’t get that.",
+            'isUser': false,
+          });
+        });
+      } catch (e) {
+        setState(() {
+          messages.add({'text': "Error: $e", 'isUser': false});
+        });
+      }
+      _scrollToBottom();
+    }
+  }
+
+  Future<void> _handleAttachment() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedFile = result.files.single;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      drawer: Drawer( 
-        backgroundColor: Colors.transparent,
-        child:Material(elevation: 10,borderRadius: const BorderRadius.only(
-      topRight: Radius.circular(50),
-      bottomRight: Radius.circular(50),
-        ),
-         
-        child: Container( decoration: BoxDecoration( gradient: LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF1F1F1F),
-      Color(0xFF2B2B2B),
-    ],
-  ),
-        borderRadius: BorderRadius.only(topRight: Radius.circular(50),bottomRight: Radius.circular(50))),
-          child: SafeArea(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [Container(
-              width: double.infinity ,
-              padding: const EdgeInsets.all(16),
-              
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50),
-              color: Colors.grey.shade800),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: Colors.blueAccent,
-                    child: Text('H',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
-                    ),),
-                  ),
-                  const SizedBox(width: 12,),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [const
-                    Text('Himanshu', style: TextStyle(fontSize: 18,
-                    fontWeight: FontWeight.bold),),
-                    Text('Your Wellness Companion 🍀')],
-                    
-                  )
-                ],
-              ) 
-              ),
-              Container(height: 30,),
-              
-              ListTile(
-                leading: const Icon(Icons.person,color: Colors.white,),
-                title: const Text('Profile',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings, color: Colors.white,),
-                title: const Text('Settings',
-                style: TextStyle(color: Colors.white, 
-                fontSize: 18
-                ),),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.history,color: Colors.white,),
-                title: const Text('History',
-                style: TextStyle(color: Colors.white,
-                fontSize: 18),),
-                onTap: () {},
-              ),
-              Spacer(),
-              ListTile( 
-                leading: const Icon(Icons.logout,color: Colors.redAccent,),
-                title: Text('LogOut',
-                style: TextStyle(color: Colors.white,
-                  fontSize: 18
-                ),),
-                onTap: () {Navigator.pop(context);},
-              )
-              
-            ],
-          )),
-        ),
-      ), ),
+    return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(230, 63, 29, 29),
-        title:  const 
-        Text('Healsync', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold,color: Color.fromARGB(255, 174, 197, 235)),),
-        centerTitle: true,
-        
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text('Healsync'),
       ),
       body: Column(
         children: [
-          Expanded(child: ListView.builder(
-        padding: EdgeInsets.all(12),
-        itemCount: messages.length ,
-        itemBuilder: (context, index) {
-          return ChatBubble(
-            text: messages[index]['text'],
-            isUser: messages[index]['isUser'],
-            );
-            },)),
-
-
-      Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-  child: Row(
-    children: [
-      Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 30, 30, 30),
-            borderRadius: BorderRadius.circular(30),
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                return ChatBubble(
+                  text: messages[index]['text'],
+                  isUser: messages[index]['isUser'],
+                );
+              },
+            ),
           ),
-          child: TextField(
-            controller: _controller,
-            textInputAction: TextInputAction.send,
-            onSubmitted: (_) => _sendmessage(),
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              hintText: 'U All Right ?',
-              border: InputBorder.none,
-            )),
-        ),),
-
-      const SizedBox(width: 8),
-      Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color.fromARGB(255, 115, 44, 16),
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.send, color: Colors.white),
-          onPressed: _sendmessage,
-        ),),
+          if (_selectedFile != null)
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(
+                "Attached: ${_selectedFile!.name}",
+                style: const TextStyle(color: Colors.white70),
+              ),
+            ),
+          SafeArea(
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: _handleAttachment,
+                  icon: const Icon(Icons.attach_file, color: Colors.grey),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      hintText: "Type a message...",
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: (_) => _handleSend(),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _handleSend,
+                  icon: const Icon(Icons.send, color: Colors.blueAccent),
+                ),
+              ],
+            ),
+          ),
         ],
-  ),)
-       
-        ]
       ),
-      
-      
-      
-      );
-  }}
+    );
+  }
+}
